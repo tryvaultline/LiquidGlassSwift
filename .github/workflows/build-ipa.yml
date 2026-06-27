@@ -16,6 +16,8 @@ jobs:
   build-unsigned-ipa:
     name: Build unsigned iPhone IPA
     runs-on: macos-latest
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
 
     steps:
       - name: Check out source

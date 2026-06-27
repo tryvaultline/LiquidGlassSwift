@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct VideoFeedView: View {
-    @State private var selectedPost = 0
+    @State private var selectedPost: Int? = 0
     @State private var ratings: [Int: Int] = [:]
 
     private let titles = [

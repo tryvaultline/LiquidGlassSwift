@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - feat/lg-nav-video-rating-implementation2
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:

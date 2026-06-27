@@ -1,0 +1,62 @@
+name: Build Prototype IPA
+
+on:
+  push:
+    branches:
+      - feat/lg-nav-video-rating-implementation2
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-unsigned-ipa:
+    name: Build unsigned iPhone IPA
+    runs-on: macos-latest
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Report Xcode environment
+        run: |
+          xcodebuild -version
+          xcodebuild -showsdks
+
+      - name: Build Release app without code signing
+        run: |
+          xcodebuild \
+            -project LiquidGlassExample.xcodeproj \
+            -scheme LiquidGlassExample \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            clean build
+
+      - name: Verify identity and package IPA
+        run: |
+          APP_PATH="build/Build/Products/Release-iphoneos/LiquidGlassExample.app"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP_PATH/Info.plist" | grep -Fx "com.tryvaultline.maxprototype"
+          /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$APP_PATH/Info.plist" | grep -Fx "2"
+          mkdir -p artifacts/Payload
+          cp -R "$APP_PATH" artifacts/Payload/
+          (
+            cd artifacts
+            ditto -c -k --sequesterRsrc --keepParent Payload Max-Prototype-unsigned-b2.ipa
+          )
+          rm -rf artifacts/Payload
+
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Max-Prototype-unsigned-b2
+          path: artifacts/Max-Prototype-unsigned-b2.ipa
+          if-no-files-found: error
